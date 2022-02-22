@@ -41,21 +41,46 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(8769));
 const axios_1 = __importDefault(__nccwpck_require__(81));
 const parse_1 = __nccwpck_require__(6099);
-function createPost(apiKey, title, body, draft, tags) {
+function createPost(apiKey, options) {
     return __awaiter(this, void 0, void 0, function* () {
+        const { title, body, description, image, originalUrl, tags, draft } = options;
+        const headers = { "api-key": apiKey };
         const published = !draft;
         const data = {
             article: {
                 title,
+                description,
+                main_image: image,
                 body_markdown: body,
+                canonical_url: originalUrl,
                 published,
                 tags,
             },
         };
-        const headers = {
-            "api-key": apiKey,
+        return yield axios_1.default
+            .post("https://dev.to/api/articles", data, { headers })
+            .then((r) => r.data);
+    });
+}
+function updatePost(apiKey, id, options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { title, body, description, image, originalUrl, tags, draft } = options;
+        const headers = { "api-key": apiKey };
+        const published = !draft;
+        const data = {
+            article: {
+                title,
+                description,
+                main_image: image,
+                body_markdown: body,
+                canonical_url: originalUrl,
+                published,
+                tags,
+            },
         };
-        yield axios_1.default.post("https://dev.to/api/articles", data, { headers: headers });
+        return yield axios_1.default
+            .put(`https://dev.to/api/articles/${id}`, data, { headers })
+            .then((r) => r.data);
     });
 }
 function run() {
@@ -64,15 +89,38 @@ function run() {
         if (title.length < 1)
             return fatalError("Title too short");
         const body = core.getInput("body", { required: true });
-        const isDraft = core.getBooleanInput("draft", { required: true });
+        const description = core.getInput("description");
+        const image = core.getInput("main_image");
+        const originalUrl = core.getInput("original_url");
+        const draft = core.getBooleanInput("draft");
         const apiKey = core.getInput("api_key", { required: true });
+        const existingId = core.getInput("id");
         const tags = (0, parse_1.parseAsStringArray)(core.getInput("tags")) || [];
         if (tags.length > 4)
             return fatalError("Cannot add more than 4 tags");
         try {
-            yield createPost(apiKey, title, body, isDraft, tags);
+            const data = {
+                title,
+                description,
+                image,
+                body,
+                originalUrl,
+                draft,
+                tags,
+            };
+            if (existingId) {
+                const post = yield updatePost(apiKey, existingId, data);
+                core.setOutput("id", post.id);
+                core.setOutput("url", post.url);
+            }
+            else {
+                const post = yield createPost(apiKey, data);
+                core.setOutput("id", post.id);
+                core.setOutput("url", post.url);
+            }
         }
         catch (e) {
+            console.debug(e);
             core.setFailed("Invalid API key provided");
             process.exit(1);
         }
