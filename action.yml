@@ -1,4 +1,4 @@
-name: 'Publish to dev.to'
+name: 'Dev.to Publisher'
 description: 'Create a new post or update an existing post through the dev.to API'
 author: 'Nevulo'
 
