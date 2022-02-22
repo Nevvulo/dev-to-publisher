@@ -1,31 +1,56 @@
-name: 'Make DEV post'
-description: 'Make a a post on DEV (dev.to) using GitHub actions !!!'
-author: 'Padmashree Jha'
+name: 'Publish to dev.to'
+description: 'Create a new post or update an existing post through the dev.to API'
+author: 'Nevulo'
+
+outputs:
+  id:
+    description: The ID of the new or updated post.
+  url:
+    description: The URL of the new or updated post.
+
 inputs:
-  title: # change this
+  id:
+    required: false
+    description: 'If you want to update an existing post, the ID for a post'
+
+  title:
     required: true
     description: 'Title of the post'
-    default: 'API Testing'
+
+  description:
+    required: true
+    description: 'Description of the post'
+
+  main_image:
+    required: true
+    description: 'The main image for the post'
+
+  original_url:
+    required: false
+    description: 'The canonical URL (original location) for the post if applicable'
 
   tags:
     required: true
-    description: 'Tags array of the post'
+    description: 'A JSON-valid array of strings to be used as tags for the post. Cannot have more than 4 tags, defaults to an empty array'
     default: '[]'
 
   body:
     required: true
-    description: 'Makrdown body of the post'
-    default: "# Testing the API"
+    description: 'The body of the post, can include Markdown'
   
-  publish:
+  draft:
+    required: false
+    description: "Whether or not the post should be publicly available or remain as a draft. Defaults to 'true'"
+    default: "true"
 
-    required: true
-    description: "If you want it to be published add true and if you want it to be draft add false"
-    default: "false"
   api_key:
     required: true
-    description: "Your DEV api key"
+    description: "The dev.to API key to publish the post using"
   
 runs:
   using: 'node16'
   main: 'dist/index.js'
+
+branding:
+  color: blue
+  icon: book-open

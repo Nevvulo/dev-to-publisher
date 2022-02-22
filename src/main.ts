@@ -68,7 +68,7 @@ async function run() {
   const description = core.getInput("description");
   const image = core.getInput("main_image");
   const originalUrl = core.getInput("original_url");
-  const draft = core.getBooleanInput("draft", { required: true });
+  const draft = core.getBooleanInput("draft");
   const apiKey = core.getInput("api_key", { required: true });
   const existingId = core.getInput("id");
 
