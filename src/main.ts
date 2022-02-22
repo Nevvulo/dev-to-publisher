@@ -12,6 +12,11 @@ interface PostOptions {
   originalUrl: string;
 }
 
+interface PostResponse {
+  id: number;
+  url: string;
+}
+
 async function createPost(apiKey: string, options: PostOptions) {
   const { title, body, description, image, originalUrl, tags, draft } = options;
   const headers = { "api-key": apiKey };
@@ -28,7 +33,9 @@ async function createPost(apiKey: string, options: PostOptions) {
     },
   };
 
-  await axios.post("https://dev.to/api/articles", data, { headers });
+  return await axios
+    .post("https://dev.to/api/articles", data, { headers })
+    .then((r) => r.data as PostResponse);
 }
 
 async function updatePost(apiKey: string, id: string, options: PostOptions) {
@@ -48,7 +55,9 @@ async function updatePost(apiKey: string, id: string, options: PostOptions) {
     },
   };
 
-  await axios.put(`https://dev.to/api/articles/${id}`, data, { headers });
+  return await axios
+    .put(`https://dev.to/api/articles/${id}`, data, { headers })
+    .then((r) => r.data as PostResponse);
 }
 
 async function run() {
@@ -67,7 +76,7 @@ async function run() {
   if (tags.length > 4) return fatalError("Cannot add more than 4 tags");
 
   try {
-    const post = {
+    const data = {
       title,
       description,
       image,
@@ -77,9 +86,13 @@ async function run() {
       tags,
     };
     if (existingId) {
-      await updatePost(apiKey, existingId, post);
+      const post = await updatePost(apiKey, existingId, data);
+      core.setOutput("id", post.id);
+      core.setOutput("url", post.url);
     } else {
-      await createPost(apiKey, post);
+      const post = await createPost(apiKey, data);
+      core.setOutput("id", post.id);
+      core.setOutput("url", post.url);
     }
   } catch (e) {
     console.debug(e);
